@@ -1,33 +1,30 @@
+
 erDiagram
+    USER ||--o{ COLLECTION : owns
     USER {
-        int user_id PK
+        int userID
         string username
         string email
         string password
     }
-    
+    COLLECTION ||--o{ COLLECTION-MOVIE : includes
+    COLLECTION {
+        int collectionID
+        string collectionName
+    }
+    MOVIE ||--o{ COLLECTION-MOVIE : part of
     MOVIE {
-        int movie_id PK
+        int movieID
         string title
-        int release_year
+        int releaseYear
         string genre
         string director
         string description
         float rating
     }
-    
-    COLLECTION {
-        int collection_id PK
-        string collection_name
-        int user_id FK
+    COLLECTION-MOVIE {
+        int collectionID
+        int movieID
+        string addedDate
     }
 
-    COLLECTION_MOVIE {
-        int collection_id FK
-        int movie_id FK
-        string added_date
-    }
-
-    USER ||--o{ COLLECTION : "owns"
-    COLLECTION ||--o{ COLLECTION_MOVIE : "contains"
-    MOVIE ||--o{ COLLECTION_MOVIE : "part of"
