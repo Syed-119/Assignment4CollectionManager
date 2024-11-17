@@ -1,4 +1,4 @@
-
+```mermaid
 erDiagram
     USER ||--o{ COLLECTION : owns
     USER {
