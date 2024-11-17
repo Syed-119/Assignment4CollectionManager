@@ -28,13 +28,14 @@ erDiagram
         string addedDate
     }
     %% User Actions
-    USER ||--o{ ADD-MOVIE : "can add movies"
-    USER ||--o{ DELETE-MOVIE : "can delete movies"
-    USER ||--o{ SEARCH-MOVIE : "can search movies"
-    USER ||--o{ EDIT-MOVIE : "can edit movies"
+    USER ||--o{ ADD-MOVIE : "adds to collection"
+    USER ||--o{ DELETE-MOVIE : "removes from collection"
+    USER ||--o{ SEARCH-MOVIE : "searches in collection"
+    USER ||--o{ EDIT-MOVIE : "edits in collection"
 
     %% Add Movie Route
     ADD-MOVIE {
+        int collectionID
         string title
         int releaseYear
         string genre
@@ -45,17 +46,20 @@ erDiagram
 
     %% Delete Movie Route
     DELETE-MOVIE {
+        int collectionID
         int movieID
     }
 
     %% Search Movie Route
     SEARCH-MOVIE {
+        int collectionID
         string filters
         string searchTerm
     }
 
     %% Edit Movie Route
     EDIT-MOVIE {
+        int collectionID
         int movieID
         string newTitle
         int newReleaseYear
@@ -64,3 +68,4 @@ erDiagram
         string newDescription
         float newRating
     }
+
