@@ -12,7 +12,7 @@ erDiagram
         int collectionID
         string collectionName
     }
-    MOVIE ||--o{ COLLECTION-MOVIE : part of
+    MOVIE ||--o{ COLLECTION-MOVIE : part
     MOVIE {
         int movieID
         string title
