@@ -5,6 +5,8 @@ Requirements:
 1.	Users should be able to add additional items to the collection manager.
 2.	Users should be able to edit existing items in the collection manager.
 3.	Users should be able to group items into categories, filtering on those categories.
+4.	Users can also add different type of movies such as kids movies and dictionaries, which can be filtered by additional fields, such as age rating.
+5.	Specific movies can also be added to favourites, which can be used in filtering.
 
 Stakeholders:
 This collection manager can be used by anyone who requires a space where they can organise their movies. They can manage the movies they want to watch and remove any movie items once they watch it. Once the movies have been added, they can then filter searches to find specific movies to watch. For example, searches could be made based on the year the movie was released, the name of the movies and even specific genre's. 
