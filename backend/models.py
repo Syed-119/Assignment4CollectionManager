@@ -15,7 +15,13 @@ class Movie(db.Model):
     is_animated = db.Column(db.Boolean, unique=False, nullable=False, default=False)
     watched = db.Column(db.Boolean, unique=False, nullable=False, default=False)
     age_rating = db.Column(db.Integer, unique=False, nullable=False)
-    
+    type = db.Column(db.String(50))  # Discriminator column to distinguish subclasses.
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'movie',  # Identifier for the base class.
+        'polymorphic_on': type  # Specifies the column used to differentiate subclasses.
+    }
+
     def to_json(self):
         """Converts the movie object into a JSON-compatible dictionary."""
         return {
@@ -52,3 +58,30 @@ class Movie(db.Model):
         return f"<Movie {self.title} ({self.release_year})>"
 
 
+class Documentary(Movie):
+    # This class represents documentaries and inherits properties from the Movie class.
+    # Additional attributes specific to documentaries are defined here.
+    __tablename__ = 'documentaries'
+
+    documentary_id = db.Column(db.Integer, db.ForeignKey('movies.movie_id'), primary_key=True)
+    topic = db.Column(db.String(128), nullable=False)  # Topic of the documentary.
+    documentarian = db.Column(db.String(80), nullable=False)  # Name of the person who made the documentary.
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'documentary'  # Identifier for the Documentary subclass.
+    }
+
+    def to_json(self):
+        """Converts the documentary object into a JSON-compatible dictionary, 
+        extending the base movie attributes with documentary-specific fields."""
+        movie_json = super().to_json()  # Start with the base class JSON representation.
+        movie_json.update({
+            "documentaryId": self.documentary_id,
+            "topic": self.topic,
+            "documentarian": self.documentarian
+        })
+        return movie_json
+
+    def __repr__(self):
+        """Provides a string representation of the documentary object for debugging purposes."""
+        return f"<Documentary {self.title} ({self.release_year})>"
