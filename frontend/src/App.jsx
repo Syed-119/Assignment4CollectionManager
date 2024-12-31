@@ -3,6 +3,7 @@ import AddingMovieRecord from './components/AddingMovieRecord'  // Component to 
 import MovieList from './components/MovieList'  // Component to display the list of movies
 
 import './App.css'  // App's CSS
+import SearchingMovie from './components/SearchingMovie'
 
 function App() {
   const [movies, setMovies] = useState([])  // State to store movies
@@ -21,8 +22,10 @@ function App() {
 
   return (
     <>
-      <MovieList movies={movies} />  {/* Display movies */}
-      <AddingMovieRecord />  {/* Form to add new movies */}
+      {/* <MovieList movies={movies} />  Display movies */}
+      <AddingMovieRecord action={"add"} />  {/* Form to add new movies */}
+      <br></br>
+      <AddingMovieRecord action={"search"} />
     </>
   )
 }
