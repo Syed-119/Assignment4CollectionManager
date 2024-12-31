@@ -1,11 +1,13 @@
 import json
 from configuration import db
+from sqlalchemy import ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column
 
 class Movie(db.Model):
     # This class allows for the creation and storage of movie objects in a database.
     # Each field represents a property of the movie, and its data type is specified.
     __tablename__ = 'movies'
-    movie_id = db.Column(db.Integer, primary_key=True)
+    movie_id: Mapped[int] = mapped_column(primary_key=True)  
     title = db.Column(db.String(80), unique=False, nullable=False)
     director = db.Column(db.String(80), unique=False, nullable=False)
     genre = db.Column(db.Text, nullable=False)  # Stores genres in a JSON serialized format.
@@ -27,13 +29,15 @@ class Movie(db.Model):
         return {
             "movieId": self.movie_id,
             "title": self.title,
+            "director": self.director,
             "genre": self.get_genres(),  # Retrieve the genres as a list.
             "releaseYear": self.release_year,
             "favourite": self.favourite,
             "duration": self.duration,
             "isAnimated": self.is_animated,
             "watched": self.watched,
-            "ageRating": self.age_rating
+            "ageRating": self.age_rating,
+            "type":self.type
         }
 
     def set_genres(self, genres):
@@ -44,8 +48,12 @@ class Movie(db.Model):
         self.genre = json.dumps(unique_genres)
 
     def get_genres(self):
-        """Gets the genres of the movie by deserializing the JSON string into a list."""
-        return json.loads(self.genre)
+        if not self.genre:  # Handle None or empty string
+            return []
+        try:
+            return json.loads(self.genre)
+        except json.JSONDecodeError:
+            return []  # Handle invalid JSON
 
     def add_genre(self, new_genre):
         """Adds a new genre to the movie while ensuring no duplicates exist."""
@@ -63,7 +71,7 @@ class Documentary(Movie):
     # Additional attributes specific to documentaries are defined here.
     __tablename__ = 'documentaries'
 
-    documentary_id = db.Column(db.Integer, db.ForeignKey('movies.movie_id'), primary_key=True)
+    documentary_id:Mapped[int] = mapped_column(ForeignKey("movies.movie_id"), primary_key=True)  
     topic = db.Column(db.String(128), nullable=False)  # Topic of the documentary.
     documentarian = db.Column(db.String(80), nullable=False)  # Name of the person who made the documentary.
 
@@ -78,7 +86,8 @@ class Documentary(Movie):
         movie_json.update({
             "documentaryId": self.documentary_id,
             "topic": self.topic,
-            "documentarian": self.documentarian
+            "documentarian": self.documentarian,
+            "type":self.type
         })
         return movie_json
 

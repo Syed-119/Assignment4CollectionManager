@@ -3,64 +3,120 @@ from configuration import app, db
 from models import Movie, Documentary
 import json
 
+
 #This endpoint searches the data base and returns the movies. I will be adding filtering to this
 @app.route("/search_movies", methods=["GET"])
 def search_movies():
-    movies = Movie.query.all()
-    json_movies = list(map(lambda x: x.to_json(), movies))
-    return jsonify({"movies": json_movies})
+    # Get query parameters
+    title = request.args.get("title")
+    director = request.args.get("director")
+    genre = request.args.get("genre")
+    age_rating = request.args.get("ageRating")
+    favourite = request.args.get("favourite")
+    watched = request.args.get("watched")
+    releaseYear = request.args.get("releaseYear")
+    duration = request.args.get("duration")
+    type = request.args.get("type")
+
+    # Build the query dynamically based on the filters provided
+    query = Movie.query
+
+    if title is not None:
+        query = query.filter(Movie.title.ilike(f"%{title}%"))  # Case-insensitive partial match
+    if director is not None:
+        query = query.filter(Movie.director.ilike(f"{director}"))
+    if genre is not None:
+        query = query.filter(Movie.genre.ilike(f"%{genre}%"))  # Case-insensitive partial match
+    if age_rating is not None:
+        query = query.filter(Movie.age_rating == int(age_rating))
+    if favourite is not None:
+        query = query.filter(Movie.favourite == (favourite.lower() == "true"))
+    if watched is not None:
+        query = query.filter(Movie.watched == (watched.lower() == "true"))
+    if releaseYear is not None:
+        query = query.filter(Movie.release_year >= releaseYear )
+    if duration is not None:
+        query = query.filter(Movie.duration<= duration )
+    if type is not None:
+        query = query.filter(Movie.type.ilike(f"{type}"))
+
+    # Execute the query and convert results to JSON
+    movies = query.all()
+    json_movies = [movie.to_json() for movie in movies]
+
+    return jsonify({"movies": json_movies}), 200
+
 
 #This endpoint is responsible for adding movies or documentaries to the database
 #The fields are retrieved from the request data and are mapped, depending on the type of record, so that they can be stored in the database
 @app.route("/add_movies", methods=["POST"])
 def add_movie():
     data = request.json
-    movie_type = data.get("type")
+    title = data.get("title")
+    director = data.get("director")
+    genre = data.get("genre")
+    release_year = data.get("releaseYear")
+    duration = data.get("duration")
+    favourite = data.get("favourite")
+    is_animated = data.get("isAnimated")
+    watched = data.get("watched")
+    age_rating = data.get("ageRating")
+    movie_type = data.get("type")  # New field to specify if it's a documentary or regular movie
+    topic = data.get("topic")  # Documentary-specific field
+    documentarian = data.get("documentarian")  # Documentary-specific field
 
-    if not movie_type:
-        return jsonify({"error": "Missing 'type' field to specify movie type"}), 400
+    # Validate required fields
+    if not title or not director or not release_year or not duration or not age_rating or not genre:
+        return jsonify({"message": "You must include title, director, release year, duration, age rating, and genre"}), 400
+    
+    genre_json = json.dumps(genre)  # Serialize genre as JSON string
 
+    if movie_type == "documentary":
+        # Create a documentary object
+        if not topic or not documentarian:
+            return jsonify({"message": "Documentary must include topic and documentarian"}), 400
+
+        # Create the documentary object, using the base 'Movie' fields along with documentary-specific fields
+        new_movie = Documentary(
+            title=title, 
+            director=director, 
+            genre=genre_json,  # Store genre as a JSON string
+            release_year=release_year, 
+            duration=duration, 
+            favourite=favourite, 
+            is_animated=is_animated, 
+            watched=watched, 
+            age_rating=age_rating, 
+            topic=topic,
+            documentarian=documentarian,
+            type=movie_type
+        )
+
+    elif movie_type == "movie":
+        # Create a regular movie object
+        new_movie = Movie(
+            title=title, 
+            director=director, 
+            genre=genre_json,  # Store genre as a JSON string
+            release_year=release_year, 
+            duration=duration, 
+            favourite=favourite, 
+            is_animated=is_animated, 
+            watched=watched, 
+            age_rating=age_rating,
+            type=movie_type
+        )
+    
+    # Add the movie/documentary to the database and commit
     try:
-        if movie_type == "movie":
-            new_movie = Movie(
-                title=data["title"],
-                director=data["director"],
-                genre=json.dumps(data["genre"]) if isinstance(data["genre"], list) else data["genre"],
-                release_year=data["releaseYear"],
-                duration=data["duration"],
-                favourite=data.get("favourite", False),
-                is_animated=data["isAnimated"],
-                watched=data["watched"],
-                age_rating=data["ageRating"]
-            )
-            db.session.add(new_movie)
-
-        elif movie_type == "documentary":
-            new_documentary = Documentary(
-                title=data["title"],
-                director=data["director"],
-                genre=json.dumps(data["genre"]) if isinstance(data["genre"], list) else data["genre"],
-                release_year=data["releaseYear"],
-                duration=data["duration"],
-                favourite=data.get("favourite", False),
-                is_animated=data["isAnimated"],
-                watched=data["watched"],
-                age_rating=data["ageRating"],
-                topic=data["topic"],
-                documentarian=data["documentarian"]
-            )
-            db.session.add(new_documentary)
-
-        else:
-            return jsonify({"error": f"Unsupported movie type: {movie_type}"}), 400
-
+        db.session.add(new_movie)
         db.session.commit()
-        return jsonify({"message": f"{movie_type.capitalize()} added successfully"}), 201
-
-    except KeyError as e:
-        return jsonify({"error": f"Missing required field: {e}"}), 400
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"message": str(e)}), 400
+
+    return jsonify({"message": "Movie/Documentary Added"}), 201
+
+
 
 #This endpoint updates a movie record depedning on the fields in the request data
 #The movie id is passed in to specify the individual record to be updated
