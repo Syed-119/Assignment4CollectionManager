@@ -1,6 +1,6 @@
 from flask import request, jsonify
 from configuration import app, db
-from models import Movie, Documentary
+from models import Movie, Documentary, KidMovies
 import json
 
 
@@ -42,10 +42,8 @@ def search_movies():
 
     # Execute the query and convert results to JSON
     movies = query.all()
-    json_movies = [movie.to_json() for movie in movies]
-
-    return jsonify({"movies": json_movies}), 200
-
+    json_movies = list(map(lambda x: x.to_json(), movies))
+    return jsonify({"movies": json_movies})
 
 #This endpoint is responsible for adding movies or documentaries to the database
 #The fields are retrieved from the request data and are mapped, depending on the type of record, so that they can be stored in the database
@@ -64,20 +62,26 @@ def add_movie():
     movie_type = data.get("type")  # New field to specify if it's a documentary or regular movie
     topic = data.get("topic")  # Documentary-specific field
     documentarian = data.get("documentarian")  # Documentary-specific field
+    moral_lesson = data.get("moralLesson")
+    parental_appeal = data.get("parentalAppeal")
 
     # Validate required fields
     if not title or not director or not release_year or not duration or not age_rating or not genre:
         return jsonify({"message": "You must include title, director, release year, duration, age rating, and genre"}), 400
     
     genre_json = json.dumps(genre)  # Serialize genre as JSON string
-
-    if movie_type == "documentary":
+    
+    
+    if movie_type == "documentary" or movie_type== "kidMovie":
         # Create a documentary object
-        if not topic or not documentarian:
-            return jsonify({"message": "Documentary must include topic and documentarian"}), 400
-
-        # Create the documentary object, using the base 'Movie' fields along with documentary-specific fields
-        new_movie = Documentary(
+        if movie_type == "documentary":
+            if not topic or not documentarian:
+                return jsonify({"message": "Documentary must include topic and documentarian"}), 400
+        elif movie_type == "kidMovie":
+            if not moral_lesson or not parental_appeal:
+                    return jsonify({"message": "Kids Movie must include a moral lesson and a parental appeal rating"}), 400
+            
+        new_movie = Movie(
             title=title, 
             director=director, 
             genre=genre_json,  # Store genre as a JSON string
@@ -86,12 +90,10 @@ def add_movie():
             favourite=favourite, 
             is_animated=is_animated, 
             watched=watched, 
-            age_rating=age_rating, 
-            topic=topic,
-            documentarian=documentarian,
+            age_rating=age_rating,
             type=movie_type
         )
-
+    
     elif movie_type == "movie":
         # Create a regular movie object
         new_movie = Movie(
@@ -106,7 +108,7 @@ def add_movie():
             age_rating=age_rating,
             type=movie_type
         )
-    
+        
     # Add the movie/documentary to the database and commit
     try:
         db.session.add(new_movie)
@@ -166,3 +168,4 @@ if __name__ == '__main__':
         db.create_all()
 
     app.run(debug=True)
+
