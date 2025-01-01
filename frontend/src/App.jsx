@@ -1,33 +1,31 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useEffect, useState } from 'react'
+import AddingMovieRecord from './components/AddingMovieRecord'  // Component to add new movies
+import MovieList from './components/MovieList'  // Component to display the list of movies
+
+import './App.css'  // App's CSS
+
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [movies, setMovies] = useState([])  // State to store movies
+
+  useEffect(() => {
+    fetchMovies()  // Fetch movies on initial render
+  }, [])
+
+  // Fetch movies from the backend
+  const fetchMovies = async () => {
+    const response = await fetch("http://127.0.0.1:5000/search_movies")
+    const data = await response.json()
+    setMovies(data.movies)  // Update state with fetched movies
+    console.log(data.movies)  // Log movies (for debugging)
+  };
 
   return (
     <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+      {/* <MovieList movies={movies} />  Display movies */}
+      <AddingMovieRecord action={"add"} />  {/* Form to add new movies */}
+      <br></br>
+      <AddingMovieRecord action={"search"} />
     </>
   )
 }
