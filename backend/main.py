@@ -26,7 +26,8 @@ def search_movies():
     if director is not None:
         query = query.filter(Movie.director.ilike(f"{director}"))
     if genre is not None:
-        query = query.filter(Movie.genre.ilike(f"%{genre}%"))  # Case-insensitive partial match
+    # Assuming the genre column stores genres as JSON strings and you want to search for the genre in the list
+        query = query.filter(Movie.genre.contains(f'"{genre}"'))  # Use contains for partial match in the JSON string
     if age_rating is not None:
         query = query.filter(Movie.age_rating == int(age_rating))
     if favourite is not None:
@@ -69,11 +70,9 @@ def add_movie():
     if not title or not director or not release_year or not duration or not age_rating or not genre:
         return jsonify({"message": "You must include title, director, release year, duration, age rating, and genre"}), 400
     
-    genre_json = json.dumps(genre)  # Serialize genre as JSON string
     
     
     if movie_type == "documentary" or movie_type== "kidMovie":
-        # Create a documentary object
         if movie_type == "documentary":
             if not topic or not documentarian:
                 return jsonify({"message": "Documentary must include topic and documentarian"}), 400
@@ -84,7 +83,6 @@ def add_movie():
         new_movie = Movie(
             title=title, 
             director=director, 
-            genre=genre_json,  # Store genre as a JSON string
             release_year=release_year, 
             duration=duration, 
             favourite=favourite, 
@@ -98,8 +96,7 @@ def add_movie():
         # Create a regular movie object
         new_movie = Movie(
             title=title, 
-            director=director, 
-            genre=genre_json,  # Store genre as a JSON string
+            director=director,
             release_year=release_year, 
             duration=duration, 
             favourite=favourite, 
@@ -108,6 +105,7 @@ def add_movie():
             age_rating=age_rating,
             type=movie_type
         )
+    new_movie.set_genres(genre) #Using custom method to add genres
         
     # Add the movie/documentary to the database and commit
     try:
@@ -122,7 +120,6 @@ def add_movie():
 
 #This endpoint updates a movie record depedning on the fields in the request data
 #The movie id is passed in to specify the individual record to be updated
-#The movie record can be marked as 'Watched' or can be favourited.
 @app.route("/update_movie/<int:movie_id>", methods=["PATCH"])
 def update_movie(movie_id):
     movie = Movie.query.get(movie_id)
@@ -130,8 +127,31 @@ def update_movie(movie_id):
     if not movie:
         return jsonify({"message": "Movie not found"}), 404
     
+    # Check if it's a KidMovie instance
+    if isinstance(movie, KidMovies):
+        # Handle KidMovies-specific updates
+        data = request.json
+        if "moralLesson" in data:
+            movie.moral_lesson = data["moralLesson"]
+        if "parentalAppeal" in data:
+            movie.parental_appeal = data["parentalAppeal"]
+    
+    # Handle other movie fields (common to all movies)
     data = request.json
-    # Update only the fields provided in the request
+    if "title" in data:
+        movie.title = data.get("title", movie.title)
+    if "director" in data:
+        movie.director = data.get("director", movie.director)
+    if "genre" in data:
+        movie.set_genres(data.get("genre", movie.get_genres()))  # Use set_genres for genre update
+    if "releaseYear" in data:
+        movie.release_year = data.get("releaseYear", movie.release_year)
+    if "duration" in data:
+        movie.duration = data.get("duration", movie.duration)
+    if "isAnimated" in data:
+        movie.is_animated = data.get("isAnimated", movie.is_animated)
+    if "ageRating" in data:
+        movie.age_rating = data.get("ageRating", movie.age_rating)
     if "watched" in data:
         movie.watched = data.get("watched", movie.watched)
     if "favourite" in data:
@@ -140,6 +160,8 @@ def update_movie(movie_id):
     db.session.commit()
 
     return jsonify({"message": "Movie updated successfully"}), 200
+
+
 
 #This endpoint will delete a movie based on the title, director and genre passed in the request.
 #It uses SQL Alchemy ORM to perform a delete query on the data base

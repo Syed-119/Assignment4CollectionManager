@@ -1,6 +1,6 @@
 import React from "react";
 
-const MovieList = ({ movies }) => {
+const MovieList = ({ movies, updateMovie, updateCallback }) => {
     return (
         <div>
             <h2>Movies</h2>
@@ -31,7 +31,7 @@ const MovieList = ({ movies }) => {
                 <tbody>
                     {/* Loop over movies and display movie details */}
                     {movies.map((movie) => (
-                        <tr key={movie.id}>
+                        <tr key={movie.movieId}>
                             {/* Display basic movie details */}
                             <td>{movie.type}</td>
                             <td>{movie.title}</td>
@@ -51,6 +51,10 @@ const MovieList = ({ movies }) => {
                                     <td>{movie.documentarian}</td>
                                 </>
                             )}
+                            <td>
+                                <button onClick={() => updateMovie(movie)}>Update</button>
+                                <button onClick={() => onDelete(movie.id)}>Delete</button>
+                            </td>
                         </tr>
                     ))}
                 </tbody>

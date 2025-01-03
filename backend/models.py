@@ -39,7 +39,7 @@ class Movie(db.Model):
             "ageRating": self.age_rating,
             "type":self.type
         }
-
+        
     def set_genres(self, genres):
         """Sets the genres for the movie by serializing a unique list of genres into a JSON string."""
         if not all(isinstance(genre, str) for genre in genres):
