@@ -38,8 +38,9 @@ def search_movies():
         query = query.filter(Movie.release_year >= releaseYear )
     if duration is not None:
         query = query.filter(Movie.duration<= duration )
-    if type is not None:
+    if type is not None and type!="all":
         query = query.filter(Movie.type.ilike(f"{type}"))
+
 
     # Execute the query and convert results to JSON
     movies = query.all()
@@ -60,7 +61,7 @@ def add_movie():
     is_animated = data.get("isAnimated")
     watched = data.get("watched")
     age_rating = data.get("ageRating")
-    movie_type = data.get("type")  # New field to specify if it's a documentary or regular movie
+    movie_type = data.get("type")  # New field to specify the type
     topic = data.get("topic")  # Documentary-specific field
     documentarian = data.get("documentarian")  # Documentary-specific field
     moral_lesson = data.get("moralLesson")
@@ -68,46 +69,58 @@ def add_movie():
 
     # Validate required fields
     if not title or not director or not release_year or not duration or not age_rating or not genre:
-        return jsonify({"message": "You must include title, director, release year, duration, age rating, and genre"}), 400
-    
-    
-    
-    if movie_type == "documentary" or movie_type== "kidMovie":
-        if movie_type == "documentary":
-            if not topic or not documentarian:
-                return jsonify({"message": "Documentary must include topic and documentarian"}), 400
-        elif movie_type == "kidMovie":
-            if not moral_lesson or not parental_appeal:
-                    return jsonify({"message": "Kids Movie must include a moral lesson and a parental appeal rating"}), 400
-            
-        new_movie = Movie(
-            title=title, 
-            director=director, 
-            release_year=release_year, 
-            duration=duration, 
-            favourite=favourite, 
-            is_animated=is_animated, 
-            watched=watched, 
-            age_rating=age_rating,
-            type=movie_type
-        )
-    
-    elif movie_type == "movie":
-        # Create a regular movie object
-        new_movie = Movie(
-            title=title, 
+        return jsonify({"message": "Missing required fields"}), 400
+
+    # Create the appropriate subclass instance based on `type`
+    new_movie = None
+    if movie_type == "documentary":
+        if not topic or not documentarian:
+            return jsonify({"message": "Documentary must include topic and documentarian"}), 400
+        new_movie = Documentary(
+            title=title,
             director=director,
-            release_year=release_year, 
-            duration=duration, 
-            favourite=favourite, 
-            is_animated=is_animated, 
-            watched=watched, 
+            genre=json.dumps(genre),
+            release_year=release_year,
+            duration=duration,
+            favourite=favourite,
+            is_animated=is_animated,
+            watched=watched,
             age_rating=age_rating,
-            type=movie_type
+            topic=topic,
+            documentarian=documentarian
         )
-    new_movie.set_genres(genre) #Using custom method to add genres
-        
-    # Add the movie/documentary to the database and commit
+    elif movie_type == "kidMovie":
+        if not moral_lesson or not parental_appeal:
+            return jsonify({"message": "Kids Movie must include moral lesson and parental appeal"}), 400
+        new_movie = KidMovies(
+            title=title,
+            director=director,
+            genre=json.dumps(genre),
+            release_year=release_year,
+            duration=duration,
+            favourite=favourite,
+            is_animated=is_animated,
+            watched=watched,
+            age_rating=age_rating,
+            moral_lesson=moral_lesson,
+            parental_appeal=parental_appeal
+        )
+    elif movie_type == "movie":
+        new_movie = Movie(
+            title=title,
+            director=director,
+            genre=json.dumps(genre),
+            release_year=release_year,
+            duration=duration,
+            favourite=favourite,
+            is_animated=is_animated,
+            watched=watched,
+            age_rating=age_rating
+        )
+    else:
+        return jsonify({"message": "Invalid movie type"}), 400
+
+    # Save to database
     try:
         db.session.add(new_movie)
         db.session.commit()
@@ -165,7 +178,7 @@ def update_movie(movie_id):
 
 #This endpoint will delete a movie based on the title, director and genre passed in the request.
 #It uses SQL Alchemy ORM to perform a delete query on the data base
-@app.route("/delete_movie", methods=["POST"])
+@app.route("/delete_movie", methods=["DELETE"])
 def delete_movie():
     title = request.json.get("title")
     director = request.json.get("director")
