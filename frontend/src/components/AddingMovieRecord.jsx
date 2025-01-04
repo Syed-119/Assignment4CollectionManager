@@ -1,22 +1,26 @@
 import React, { useState } from "react";
 import MovieList from "./MovieList";
 
-const AddingMovieRecord = ({ action }) => {
+const AddingMovieRecord = ({ action, existingMovie = {}, updateCallBack, params, setParams }) => {
     // State variables to hold form data
-    const [title, setTitle] = useState("");
-    const [director, setDirector] = useState("");
-    const [genre, setGenre] = useState("");
-    const [releaseYear, setReleaseYear] = useState("");
-    const [duration, setDuration] = useState("");
-    const [watched, setWatched] = useState(false);
-    const [favourite, setFavourite] = useState(false);
-    const [isAnimated, setIsAnimated] = useState(false);
-    const [ageRating, setAgeRating] = useState("");
-    const [movieType, setMovieType] = useState("movie");  // Default type is "movie"
-    const [topic, setTopic] = useState("");  // Specific to documentaries
-    const [documentarian, setDocumentarian] = useState("");  // Specific to documentaries
+    const [title, setTitle] = useState(existingMovie.title || "");
+    const [director, setDirector] = useState(existingMovie.director || "");
+    const [genre, setGenre] = useState(existingMovie.genre || "");
+    const [releaseYear, setReleaseYear] = useState(existingMovie.releaseYear || "");
+    const [duration, setDuration] = useState(existingMovie.duration || "");
+    const [watched, setWatched] = useState(existingMovie.watched || false);
+    const [favourite, setFavourite] = useState(existingMovie.favourite || false);
+    const [isAnimated, setIsAnimated] = useState(existingMovie.isAnimated || false);
+    const [ageRating, setAgeRating] = useState(existingMovie.ageRating || "");
+    const [movieType, setMovieType] = useState(existingMovie.movieType || "");  // Default type is "movie"
+    const [topic, setTopic] = useState(existingMovie.topic || "");  // Specific to documentaries
+    const [documentarian, setDocumentarian] = useState(existingMovie.documentarian || "");  // Specific to documentaries
+    const [moralLesson, setMoralLesson] = useState(existingMovie.moralLesson || "");
+    const [parentalAppeal, setParentalAppeal] = useState(existingMovie.parentalAppeal || "");
 
-    const [movies, setMovies] = useState([])
+
+
+    const updating = Object.entries(existingMovie).length !== 0
 
     // Handle form submission
     const handleSubmit = async (e) => {
@@ -29,7 +33,7 @@ const AddingMovieRecord = ({ action }) => {
             const movieRecord = {
                 title,
                 director,
-                genre: genre.split(",").map((g) => g.trim()),  // Split and clean up the genres
+                genre: (typeof genre === "string" ? genre : String(genre || "")).split(",").map((g) => g.trim()), // Split and clean up the genres
                 releaseYear: parseInt(releaseYear, 10),
                 duration: parseInt(duration, 10),
                 favourite,
@@ -38,18 +42,24 @@ const AddingMovieRecord = ({ action }) => {
                 ageRating,
                 type: movieType,
                 topic,  // Only used for documentaries
-                documentarian  // Only used for documentaries
+                documentarian,  // Only used for documentaries
+                moralLesson, // Only used for kids movies
+                parentalAppeal // Only used for kids movies
             };
 
             // Send the movie record to the backend
-            const url = "http://127.0.0.1:5000/add_movies";
+            const url = "http://127.0.0.1:5000/" + (updating ? `update_movie/${existingMovie.movieId}` : "add_movies");
             const options = {
-                method: "POST",
+                method: updating ? "PATCH" : "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify(movieRecord),
             };
+
+            console.log("Request URL:", url);
+            console.log("Request Options:", options);
+
             const response = await fetch(url, options);
 
             // Handle the response based on status
@@ -57,42 +67,28 @@ const AddingMovieRecord = ({ action }) => {
                 const data = await response.json();
                 alert(data.message);  // Show any error message from the server
             } else {
-                // Handle success (could add success message or redirect)
+                alert("Movied added/updated successfully")
+                updateCallBack()
+
             }
         } else if (action === "search") {
-            const params = new URLSearchParams();
+            const parameters = new URLSearchParams();
 
-            if (title) params.append("title", title);
-            if (director) params.append("director", director);
-            if (genre) params.append("genre", genre);
-            if (ageRating) params.append("age_rating", ageRating);
-            if (favourite) params.append("favourite", favourite);
-            if (watched) params.append("watched", watched);
-            if (releaseYear) params.append("release_year", releaseYear);
-            if (movieType) params.append("type", movieType);
-            if (topic) params.append("topic", topic);
-            if (documentarian) params.append("documentarian", documentarian);
+            if (title) parameters.append("title", title);
+            if (director) parameters.append("director", director);
+            if (genre) parameters.append("genre", genre);
+            if (ageRating) parameters.append("age_rating", ageRating);
+            if (favourite) parameters.append("favourite", favourite);
+            if (watched) parameters.append("watched", watched);
+            if (releaseYear) parameters.append("release_year", releaseYear);
+            if (movieType) parameters.append("type", movieType);
+            if (topic) parameters.append("topic", topic);
+            if (documentarian) parameters.append("documentarian", documentarian);
 
-            try {
-                // Send the GET request to the backend
-                const response = await fetch(`http://127.0.0.1:5000/search_movies?${params.toString()}`, {
-                    method: "GET",
-                });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
-                }
-
-                // Process the JSON response
-                const data = await response.json()
-                setMovies(data.movies);
-
-                // Here, you can display the results on the frontend
-            } catch (error) {
-                console.error("Error fetching movies:", error);
-            }
+            setParams(parameters)
         }
     };
+
 
     return (
         <div>
@@ -105,37 +101,17 @@ const AddingMovieRecord = ({ action }) => {
                         value={movieType}
                         onChange={(e) => setMovieType(e.target.value)}
                     >
+                        {action === "search" && (
+                            <option value="all">All</option>
+                        )}
                         <option value="movie">Regular Movie</option>
                         <option value="documentary">Documentary</option>
+                        <option value="kidMovie">Kids Movie</option>
+
                     </select>
                 </div>
 
-                {/* Display these fields only if movie type is documentary */}
-                {movieType === "documentary" && (
-                    <>
-                        <div>
-                            <label htmlFor="topic">Topic:</label>
-                            <input
-                                type="text"
-                                id="topic"
-                                value={topic}
-                                onChange={(e) => setTopic(e.target.value)}
-                                required={action === "add"}
-                            />
-                        </div>
-                        <div>
-                            <label htmlFor="documentarian">Documentarian:</label>
-                            <input
-                                type="text"
-                                id="documentarian"
-                                value={documentarian}
-                                onChange={(e) => setDocumentarian(e.target.value)}
-                                required={action === "add"}
 
-                            />
-                        </div>
-                    </>
-                )}
 
                 {/* Movie Title */}
                 <div>
@@ -245,9 +221,70 @@ const AddingMovieRecord = ({ action }) => {
                     />
                 </div>
 
-                {/* Submit Button */}
-                <button type="submit">{action === "add" ? "Add Movie" : "Search Movie"}</button>
-                {movies.length > 0 && <MovieList movies={movies} />}
+                {/* Display these fields only if movie type is documentary */}
+                {movieType === "documentary" && (
+                    <>
+                        <div>
+                            <label htmlFor="topic">Topic:</label>
+                            <input
+                                type="text"
+                                id="topic"
+                                value={topic}
+                                onChange={(e) => setTopic(e.target.value)}
+                                required={action === "add"}
+                            />
+                        </div>
+                        <div>
+                            <label htmlFor="documentarian">Documentarian:</label>
+                            <input
+                                type="text"
+                                id="documentarian"
+                                value={documentarian}
+                                onChange={(e) => setDocumentarian(e.target.value)}
+                                required={action === "add"}
+
+                            />
+                        </div>
+                    </>
+                )}
+
+                {movieType === "kidMovie" && (
+                    <>
+                        <div>
+                            <label htmlFor="moralLesson">Moral Lesson:</label>
+                            <input
+                                type="text"
+                                id="moralLesson"
+                                value={moralLesson}
+                                onChange={(e) => setMoralLesson(e.target.value)}
+                                required={action === "add"}
+                            />
+                        </div>
+                        <div>
+                            <label htmlFor="parentalAppeal">Parental Appeal:</label>
+                            <input
+                                type="number"
+                                id="parentalAppeal"
+                                value={parentalAppeal}
+                                min="1"
+                                max="10"
+                                onChange={(e) => {
+                                    const value = parseInt(e.target.value, 10);
+                                    if (value >= 1 && value <= 10) {
+                                        setParentalAppeal(value); // Update state only if value is within range
+                                    } else if (e.target.value === "") {
+                                        setParentalAppeal(""); // Allow clearing the input
+                                    }
+                                }}
+                                required={action === "add"}
+                            />
+                        </div>
+                    </>
+                )}
+
+                <button type="submit">{updating ? "Update" : action === "add" ? "Add Movie" : "Search Movie"}</button>
+
+
             </form>
         </div>
     );
