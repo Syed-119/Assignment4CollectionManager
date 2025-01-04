@@ -42,7 +42,6 @@ class Movie(Base):
             "director": self.director,
             "genre": self.get_genres(),  # Retrieve the genres as a list.
             "director": self.director,
-            "genre": self.get_genres(),
             "releaseYear": self.release_year,
             "favourite": self.favourite,
             "duration": self.duration,
@@ -66,13 +65,7 @@ class Movie(Base):
             return json.loads(self.genre)
         except json.JSONDecodeError:
             return []  # Handle invalid JSON
-        """Gets the genres as a list."""
-        if not self.genre:
-            return []
-        try:
-            return json.loads(self.genre)
-        except json.JSONDecodeError:
-            return []
+    
 
     def add_genre(self, new_genre):
         """Adds a new genre to the movie."""
@@ -134,28 +127,3 @@ class KidMovies(Movie):
         return f"<Kid Movie {self.title} ({self.release_year})>"
 
         
-
-
-class KidMovies(Movie):
-    """Class representing kid movies."""
-    __tablename__ = 'kidMovies'
-    kid_movie_id = db.Column(db.Integer, db.ForeignKey('movies.movie_id'), primary_key=True)
-    moral_lesson = db.Column(db.String(512), nullable=False)
-    parental_appeal = db.Column(db.Integer, nullable=False)
-
-    __mapper_args__ = {
-        'polymorphic_identity': 'kidMovie'
-    }
-
-    def to_json(self):
-        """Converts the kid movie object into a JSON-compatible dictionary."""
-        movie_json = super().to_json()
-        movie_json.update({
-            "kidMovieId": self.kid_movie_id,
-            "moralLesson": self.moral_lesson,
-            "parentalAppeal": self.parental_appeal
-        })
-        return movie_json
-
-    def __repr__(self):
-        return f"<Kid Movie {self.title} ({self.release_year})>"
