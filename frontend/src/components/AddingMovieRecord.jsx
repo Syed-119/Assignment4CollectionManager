@@ -12,7 +12,7 @@ const AddingMovieRecord = ({ action, existingMovie = {}, updateCallBack, params,
     const [favourite, setFavourite] = useState(existingMovie.favourite || false);
     const [isAnimated, setIsAnimated] = useState(existingMovie.isAnimated || false);
     const [ageRating, setAgeRating] = useState(existingMovie.ageRating || "");
-    const [movieType, setMovieType] = useState(existingMovie.movieType || "");  // Default type is "movie"
+    const [movieType, setMovieType] = useState(existingMovie.movieType || "movie");  // Default type is "movie"
     const [topic, setTopic] = useState(existingMovie.topic || "");  // Specific to documentaries
     const [documentarian, setDocumentarian] = useState(existingMovie.documentarian || "");  // Specific to documentaries
     const [moralLesson, setMoralLesson] = useState(existingMovie.moralLesson || "");
@@ -65,10 +65,12 @@ const AddingMovieRecord = ({ action, existingMovie = {}, updateCallBack, params,
             // Handle the response based on status
             if (response.status !== 201 && response.status !== 200) {
                 const data = await response.json();
+                console.log("movies:", data);
                 alert(data.message);  // Show any error message from the server
             } else {
-                updateCallBack()
                 alert("Movied added/updated successfully")
+                updateCallBack()
+
             }
         } else if (action === "search") {
             const parameters = new URLSearchParams();
@@ -100,9 +102,13 @@ const AddingMovieRecord = ({ action, existingMovie = {}, updateCallBack, params,
                         value={movieType}
                         onChange={(e) => setMovieType(e.target.value)}
                     >
+                        {action === "search" && (
+                            <option value="all">All</option>
+                        )}
                         <option value="movie">Regular Movie</option>
                         <option value="documentary">Documentary</option>
                         <option value="kidMovie">Kids Movie</option>
+
                     </select>
                 </div>
 

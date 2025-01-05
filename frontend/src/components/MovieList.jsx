@@ -1,6 +1,21 @@
 import React from "react";
 
 const MovieList = ({ movies, updateMovie, updateCallback }) => {
+    const onDelete = async (id) => {
+        try {
+            const options = {
+                method: "DELETE"
+            }
+            const response = await fetch(`http://127.0.0.1:5000/delete_movie/${id}`, options)
+            if (response.status === 200) {
+                updateCallback()
+            } else {
+                console.error("Failed to delete")
+            }
+        } catch (error) {
+            alert(error)
+        }
+    }
     return (
         <div>
             <h2>Movies</h2>
@@ -53,7 +68,7 @@ const MovieList = ({ movies, updateMovie, updateCallback }) => {
                             )}
                             <td>
                                 <button onClick={() => updateMovie(movie)}>Update</button>
-                                <button onClick={() => onDelete(movie.id)}>Delete</button>
+                                <button onClick={() => onDelete(movie.movieId)}>Delete</button>
                             </td>
                         </tr>
                     ))}
