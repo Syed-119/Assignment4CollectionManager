@@ -65,13 +65,7 @@ class Movie(Base):
             return json.loads(self.genre)
         except json.JSONDecodeError:
             return []  # Handle invalid JSON
-    
 
-    def add_genre(self, new_genre):
-        """Adds a new genre to the movie."""
-        genres = set(self.get_genres())
-        genres.add(new_genre)
-        self.set_genres(list(genres))
 
     def __repr__(self):
         return f"<Movie {self.title} ({self.release_year})>"
@@ -127,3 +121,4 @@ class KidMovies(Movie):
         return f"<Kid Movie {self.title} ({self.release_year})>"
 
         
+

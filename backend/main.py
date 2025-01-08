@@ -11,41 +11,67 @@ def search_movies():
     title = request.args.get("title")
     director = request.args.get("director")
     genre = request.args.get("genre")
-    age_rating = request.args.get("ageRating")
+    age_rating = request.args.get("age_rating")
     favourite = request.args.get("favourite")
     watched = request.args.get("watched")
-    releaseYear = request.args.get("releaseYear")
+    release_year = request.args.get("release_year")
     duration = request.args.get("duration")
-    type = request.args.get("type")
+    movie_type = request.args.get("type")
+    is_animated = request.args.get("is_animated")
+    topic = request.args.get("topic")
+    documentarian = request.args.get("documentarian")
+    moral_lesson = request.args.get("moral_lesson")
+    parental_appeal = request.args.get("parental_appeal")
 
-    # Build the query dynamically based on the filters provided
+    # Start building the query
     query = Movie.query
-
-    if title is not None:
-        query = query.filter(Movie.title.ilike(f"%{title}%"))  # Case-insensitive partial match
-    if director is not None:
-        query = query.filter(Movie.director.ilike(f"{director}"))
-    if genre is not None:
-    # Assuming the genre column stores genres as JSON strings and you want to search for the genre in the list
-        query = query.filter(Movie.genre.contains(f'"{genre}"'))  # Use contains for partial match in the JSON string
-    if age_rating is not None:
-        query = query.filter(Movie.age_rating == int(age_rating))
+    if title:
+        query = query.filter(Movie.title.ilike(f"%{title}%"))
+    if topic:
+        query = query.filter(Movie.topic.ilike(f"%{topic}%"))
+    if documentarian:
+        query = query.filter(Movie.documentarian.ilike(f"%{documentarian}%"))
+    if moral_lesson:
+        query = query.filter(Movie.moral_lesson.ilike(f"%{moral_lesson}%"))
+    if director:
+        query = query.filter(Movie.director.ilike(f"%{director}%"))
+    if genre:
+        query = query.filter(Movie.genre.contains(f'"{genre}"'))
+    if age_rating:
+        try:
+            query = query.filter(Movie.age_rating == int(age_rating))
+        except ValueError:
+            return jsonify({"message": "Invalid age rating format"}), 400
     if favourite is not None:
         query = query.filter(Movie.favourite == (favourite.lower() == "true"))
     if watched is not None:
-        query = query.filter(Movie.watched == (watched.lower() == "true"))
-    if releaseYear is not None:
-        query = query.filter(Movie.release_year >= releaseYear )
-    if duration is not None:
-        query = query.filter(Movie.duration<= duration )
-    if type is not None and type!="all":
-        query = query.filter(Movie.type.ilike(f"{type}"))
-
-
+        query = query.filter(Movie.watched == (watched.lower() == "true"))  
+    if release_year:
+        try:
+            query = query.filter(Movie.release_year <= int(release_year))
+        except ValueError:
+            return jsonify({"message": "Invalid release year format"}), 400
+    if duration:
+        try:
+            query = query.filter(Movie.duration <= int(duration))
+        except ValueError:
+            return jsonify({"message": "Invalid duration format"}), 400
+    if movie_type and movie_type.lower() != "all":
+        query = query.filter(Movie.type.ilike(f"{movie_type}"))
+    if is_animated is not None:
+        query = query.filter(Movie.is_animated == (is_animated.lower() == "true"))
+    if parental_appeal:
+        try:
+            query = query.filter(Movie.parental_appeal <= int(parental_appeal))
+        except ValueError:
+            return jsonify({"message": "Invalid age rating format"}), 400
+    
     # Execute the query and convert results to JSON
     movies = query.all()
-    json_movies = list(map(lambda x: x.to_json(), movies))
+    json_movies = [movie.to_json() for movie in movies]
+
     return jsonify({"movies": json_movies})
+
 
 #This endpoint is responsible for adding movies or documentaries to the database
 #The fields are retrieved from the request data and are mapped, depending on the type of record, so that they can be stored in the database
@@ -79,7 +105,6 @@ def add_movie():
         new_movie = Documentary(
             title=title,
             director=director,
-            genre=json.dumps(genre),
             release_year=release_year,
             duration=duration,
             favourite=favourite,
@@ -95,7 +120,6 @@ def add_movie():
         new_movie = KidMovies(
             title=title,
             director=director,
-            genre=json.dumps(genre),
             release_year=release_year,
             duration=duration,
             favourite=favourite,
@@ -109,7 +133,6 @@ def add_movie():
         new_movie = Movie(
             title=title,
             director=director,
-            genre=json.dumps(genre),
             release_year=release_year,
             duration=duration,
             favourite=favourite,
@@ -119,6 +142,10 @@ def add_movie():
         )
     else:
         return jsonify({"message": "Invalid movie type"}), 400
+    try:
+        new_movie.set_genres(genre)  # Use set_genres to handle genres
+    except ValueError as e:
+        return jsonify({"message": str(e)}), 400
 
     # Save to database
     try:
@@ -178,24 +205,17 @@ def update_movie(movie_id):
 
 #This endpoint will delete a movie based on the title, director and genre passed in the request.
 #It uses SQL Alchemy ORM to perform a delete query on the data base
-@app.route("/delete_movie", methods=["DELETE"])
-def delete_movie():
-    title = request.json.get("title")
-    director = request.json.get("director")
-    genre = request.json.get("genre")
+@app.route("/delete_movie/<int:id>", methods=["DELETE"])
+def delete_movie(id):
+    movie = Movie.query.get(id)
     
-    if not title or not director or not genre:
-        return jsonify({"message": "You must include the title, director, and genre"}), 400
-
-    # Use ORM to delete
-    movie = Movie.query.filter_by(title=title, director=director, genre=genre).first()
-
-    if movie:
-        db.session.delete(movie)
-        db.session.commit()
-        return jsonify({"message": "Movie deleted successfully"}), 200
-    else:
+    if not movie:
         return jsonify({"message": "Movie not found"}), 404
+    
+    db.session.delete(movie)
+    db.session.commit()
+    
+    return jsonify({"message": "Movie deleted"}), 200
 
 
 if __name__ == '__main__':

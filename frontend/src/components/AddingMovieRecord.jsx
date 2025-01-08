@@ -85,6 +85,9 @@ const AddingMovieRecord = ({ action, existingMovie = {}, updateCallBack, params,
             if (movieType) parameters.append("type", movieType);
             if (topic) parameters.append("topic", topic);
             if (documentarian) parameters.append("documentarian", documentarian);
+            if (isAnimated) parameters.append("is_animated", isAnimated)
+            if (moralLesson) parameters.append("moral_lesson", moralLesson)
+            if (parentalAppeal) parameters.append("parental_appeal", parentalAppeal)
 
             setParams(parameters)
         }
@@ -98,6 +101,7 @@ const AddingMovieRecord = ({ action, existingMovie = {}, updateCallBack, params,
                 <div>
                     <label htmlFor="movieType">Movie Type:</label>
                     <select
+                        className="form-element"
                         id="movieType"
                         value={movieType}
                         onChange={(e) => setMovieType(e.target.value)}
@@ -117,43 +121,26 @@ const AddingMovieRecord = ({ action, existingMovie = {}, updateCallBack, params,
                 {/* Movie Title */}
                 <div>
                     <label htmlFor="title">Movie Title:</label>
-                    <input
-                        type="text"
-                        id="title"
-                        value={title}
-                        onChange={(e) => setTitle(e.target.value)}
-                        required={action === "add"}
-                    />
+                    <input className="form-element" type="text" id="title" value={title} onChange={(e) => setTitle(e.target.value)} required={action === "add"} />
                 </div>
 
                 {/* Director */}
                 <div>
                     <label htmlFor="director">Director:</label>
-                    <input
-                        type="text"
-                        id="director"
-                        value={director}
-                        onChange={(e) => setDirector(e.target.value)}
-                        required={action === "add"}
-                    />
+                    <input className="form-element" type="text" id="director" value={director} onChange={(e) => setDirector(e.target.value)} required={action === "add"} />
                 </div>
 
                 {/* Genre - Accepts a comma-separated list of genres */}
                 <div>
                     <label htmlFor="genre">Genre:</label>
-                    <input
-                        type="text"
-                        id="genre"
-                        value={genre}
-                        onChange={(e) => setGenre(e.target.value)}
-                        required={action === "add"}
-                    />
+                    <input className="form-element" type="text" id="genre" value={genre} onChange={(e) => setGenre(e.target.value)} required={action === "add"} />
                 </div>
 
                 {/* Release Year */}
                 <div>
                     <label htmlFor="releaseYear">Release Year:</label>
                     <input
+                        className="form-element"
                         type="number"
                         id="releaseYear"
                         value={releaseYear}
@@ -166,6 +153,7 @@ const AddingMovieRecord = ({ action, existingMovie = {}, updateCallBack, params,
                 <div>
                     <label htmlFor="duration">Duration (in minutes):</label>
                     <input
+                        className="form-element"
                         type="number"
                         id="duration"
                         value={duration}
@@ -178,6 +166,7 @@ const AddingMovieRecord = ({ action, existingMovie = {}, updateCallBack, params,
                 <div>
                     <label htmlFor="watched">Watched:</label>
                     <input
+                        className="form-element"
                         type="checkbox"
                         id="watched"
                         checked={watched}
@@ -190,6 +179,7 @@ const AddingMovieRecord = ({ action, existingMovie = {}, updateCallBack, params,
                 <div>
                     <label htmlFor="favourite">Favourite:</label>
                     <input
+                        className="form-element"
                         type="checkbox"
                         id="favourite"
                         checked={favourite}
@@ -202,6 +192,7 @@ const AddingMovieRecord = ({ action, existingMovie = {}, updateCallBack, params,
                 <div>
                     <label htmlFor="isAnimated">Is Animated:</label>
                     <input
+                        className="form-element"
                         type="checkbox"
                         id="isAnimated"
                         checked={isAnimated}
@@ -214,6 +205,7 @@ const AddingMovieRecord = ({ action, existingMovie = {}, updateCallBack, params,
                 <div>
                     <label htmlFor="ageRating">Age Rating:</label>
                     <input
+                        className="form-element"
                         type="text"
                         id="ageRating"
                         value={ageRating}
@@ -228,6 +220,7 @@ const AddingMovieRecord = ({ action, existingMovie = {}, updateCallBack, params,
                         <div>
                             <label htmlFor="topic">Topic:</label>
                             <input
+                                className="form-element"
                                 type="text"
                                 id="topic"
                                 value={topic}
@@ -238,6 +231,7 @@ const AddingMovieRecord = ({ action, existingMovie = {}, updateCallBack, params,
                         <div>
                             <label htmlFor="documentarian">Documentarian:</label>
                             <input
+                                className="form-element"
                                 type="text"
                                 id="documentarian"
                                 value={documentarian}
@@ -254,6 +248,7 @@ const AddingMovieRecord = ({ action, existingMovie = {}, updateCallBack, params,
                         <div>
                             <label htmlFor="moralLesson">Moral Lesson:</label>
                             <input
+                                className="form-element"
                                 type="text"
                                 id="moralLesson"
                                 value={moralLesson}
@@ -264,6 +259,7 @@ const AddingMovieRecord = ({ action, existingMovie = {}, updateCallBack, params,
                         <div>
                             <label htmlFor="parentalAppeal">Parental Appeal:</label>
                             <input
+                                className="form-element"
                                 type="number"
                                 id="parentalAppeal"
                                 value={parentalAppeal}
@@ -283,7 +279,7 @@ const AddingMovieRecord = ({ action, existingMovie = {}, updateCallBack, params,
                     </>
                 )}
 
-                <button type="submit">{updating ? "Update" : action === "add" ? "Add Movie" : "Search Movie"}</button>
+                <button className="btn-primary" type="submit">{updating ? "Update" : action === "add" ? "Add Movie" : "Search Movie"}</button>
 
 
             </form>

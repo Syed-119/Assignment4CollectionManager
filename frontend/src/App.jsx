@@ -56,23 +56,35 @@ function App() {
 
   return (
     <>
-      {/* Form to add a new movie */}
-      <AddingMovieRecord action="add" existingMovie={currentMovie} updateCallback={onUpdate} />
-
-      {/* Modal for editing a movie */}
-      {isModalOpen && (
-        <div className="modal">
-          <div className="modal-content">
-            <span className="close" onClick={closeModal}>&times;</span>
+      <div className="bg-black min-h-screen">
+        <h1 className="flex items-center justify-center h-16 font-bold text-2xl text-white">MOVIE COLLECTION MANAGER</h1>
+        <div className="flex flex-row items-start space-x-8 mb-16">
+          {/* Box for Adding a Movie */}
+          <div className="bg-blue-900 text-white p-6 rounded-md shadow-md w-1/2">
+            <h2 className="text-xl font-bold mb-4">Add a Movie</h2>
             <AddingMovieRecord action="add" existingMovie={currentMovie} updateCallback={onUpdate} />
           </div>
+          {/* Box for Searching a Movie */}
+          <div className="bg-blue-900 text-white p-6 rounded-md shadow-md w-1/2">
+            <h2 className="text-xl font-bold mb-4">Search Movies</h2>
+            <AddingMovieRecord action="search" params={params} setParams={setParams} updateCallBack={onUpdate} />
+          </div>
         </div>
-      )}
-      {/* Form to search movies */}
-      <AddingMovieRecord action="search" params={params} setParams={setParams} updateCallBack={onUpdate} />
+        {/* Modal for editing a movie */}
+        {isModalOpen && (
+          <div className="modal">
+            <div className="modal-content text-white">
+              <span className="close" onClick={closeModal}>&times;</span>
+              <AddingMovieRecord action="add" existingMovie={currentMovie} updateCallback={onUpdate} />
+            </div>
+          </div>
+        )}
+        {/* Display the list of movies */}
+        <div className="bg-blue-900 text-white p-6 rounded-md shadow-md w-full">
+          <MovieList movies={movies} updateMovie={openEditModal} updateCallBack={onUpdate} />
+        </div>
 
-      {/* Display the list of movies */}
-      <MovieList movies={movies} updateMovie={openEditModal} updateCallBack={onUpdate} />
+      </div>
     </>
   );
 }
