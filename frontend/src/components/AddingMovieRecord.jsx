@@ -242,7 +242,7 @@ const AddingMovieRecord = ({ action, existingMovie = {}, updateCallBack, params,
                         </div>
                     </>
                 )}
-
+                {/* Display these fields only if movie type is kids movie */}
                 {movieType === "kidMovie" && (
                     <>
                         <div>

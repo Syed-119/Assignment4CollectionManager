@@ -175,6 +175,12 @@ def update_movie(movie_id):
             movie.moral_lesson = data["moralLesson"]
         if "parentalAppeal" in data:
             movie.parental_appeal = data["parentalAppeal"]
+    elif isinstance(movie, Documentary):
+        data = request.json
+        if "topic" in data:
+            movie.topic = data["topic"]
+        if "documentarian" in data:
+            movie.documentarian = data["documentarian"]
     
     # Handle other movie fields (common to all movies)
     data = request.json
