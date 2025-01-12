@@ -3,11 +3,10 @@ from configuration import app, db
 from models import Movie, Documentary, KidMovies
 import json
 
-
-#This endpoint searches the data base and returns the movies. I will be adding filtering to this
+# Endpoint to search movies in the database with optional filters
 @app.route("/search_movies", methods=["GET"])
 def search_movies():
-    # Get query parameters
+    # Extract query parameters for filtering
     title = request.args.get("title")
     director = request.args.get("director")
     genre = request.args.get("genre")
@@ -23,7 +22,7 @@ def search_movies():
     moral_lesson = request.args.get("moral_lesson")
     parental_appeal = request.args.get("parental_appeal")
 
-    # Start building the query
+    # Build the SQLAlchemy query based on provided filters
     query = Movie.query
     if title:
         query = query.filter(Movie.title.ilike(f"%{title}%"))
@@ -45,7 +44,7 @@ def search_movies():
     if favourite is not None:
         query = query.filter(Movie.favourite == (favourite.lower() == "true"))
     if watched is not None:
-        query = query.filter(Movie.watched == (watched.lower() == "true"))  
+        query = query.filter(Movie.watched == (watched.lower() == "true"))
     if release_year:
         try:
             query = query.filter(Movie.release_year <= int(release_year))
@@ -64,19 +63,18 @@ def search_movies():
         try:
             query = query.filter(Movie.parental_appeal <= int(parental_appeal))
         except ValueError:
-            return jsonify({"message": "Invalid age rating format"}), 400
+            return jsonify({"message": "Invalid parental appeal format"}), 400
     
-    # Execute the query and convert results to JSON
+    # Execute the query and return results
     movies = query.all()
     json_movies = [movie.to_json() for movie in movies]
-
     return jsonify({"movies": json_movies})
 
 
-#This endpoint is responsible for adding movies or documentaries to the database
-#The fields are retrieved from the request data and are mapped, depending on the type of record, so that they can be stored in the database
+# Endpoint to add new movies or documentaries to the database
 @app.route("/add_movies", methods=["POST"])
 def add_movie():
+    # Parse input data from request
     data = request.json
     title = data.get("title")
     director = data.get("director")
@@ -87,18 +85,17 @@ def add_movie():
     is_animated = data.get("isAnimated")
     watched = data.get("watched")
     age_rating = data.get("ageRating")
-    movie_type = data.get("type")  # New field to specify the type
-    topic = data.get("topic")  # Documentary-specific field
-    documentarian = data.get("documentarian")  # Documentary-specific field
+    movie_type = data.get("type")
+    topic = data.get("topic")
+    documentarian = data.get("documentarian")
     moral_lesson = data.get("moralLesson")
     parental_appeal = data.get("parentalAppeal")
 
-    # Validate required fields
+    # Validate required fields for all movie types
     if not title or not director or not release_year or not duration or not age_rating or not genre:
         return jsonify({"message": "Missing required fields"}), 400
 
-    # Create the appropriate subclass instance based on `type`
-    new_movie = None
+    # Determine movie type and create the appropriate database record
     if movie_type == "documentary":
         if not topic or not documentarian:
             return jsonify({"message": "Documentary must include topic and documentarian"}), 400
@@ -142,13 +139,10 @@ def add_movie():
         )
     else:
         return jsonify({"message": "Invalid movie type"}), 400
-    try:
-        new_movie.set_genres(genre)  # Use set_genres to handle genres
-    except ValueError as e:
-        return jsonify({"message": str(e)}), 400
 
-    # Save to database
+    # Set genres and save the movie to the database
     try:
+        new_movie.set_genres(genre)
         db.session.add(new_movie)
         db.session.commit()
     except Exception as e:
@@ -157,39 +151,38 @@ def add_movie():
     return jsonify({"message": "Movie/Documentary Added"}), 201
 
 
-
-#This endpoint updates a movie record depedning on the fields in the request data
-#The movie id is passed in to specify the individual record to be updated
+# Endpoint to update an existing movie record by ID
 @app.route("/update_movie/<int:movie_id>", methods=["PATCH"])
 def update_movie(movie_id):
     movie = Movie.query.get(movie_id)
 
     if not movie:
         return jsonify({"message": "Movie not found"}), 404
-    
-    # Check if it's a KidMovie instance
+
+    # Handle updates specific to KidMovies
     if isinstance(movie, KidMovies):
-        # Handle KidMovies-specific updates
         data = request.json
         if "moralLesson" in data:
             movie.moral_lesson = data["moralLesson"]
         if "parentalAppeal" in data:
             movie.parental_appeal = data["parentalAppeal"]
+
+    # Handle updates specific to Documentaries
     elif isinstance(movie, Documentary):
         data = request.json
         if "topic" in data:
             movie.topic = data["topic"]
         if "documentarian" in data:
             movie.documentarian = data["documentarian"]
-    
-    # Handle other movie fields (common to all movies)
+
+    # Handle updates for common movie fields
     data = request.json
     if "title" in data:
         movie.title = data.get("title", movie.title)
     if "director" in data:
         movie.director = data.get("director", movie.director)
     if "genre" in data:
-        movie.set_genres(data.get("genre", movie.get_genres()))  # Use set_genres for genre update
+        movie.set_genres(data.get("genre", movie.get_genres()))
     if "releaseYear" in data:
         movie.release_year = data.get("releaseYear", movie.release_year)
     if "duration" in data:
@@ -204,13 +197,10 @@ def update_movie(movie_id):
         movie.favourite = data.get("favourite", movie.favourite)
 
     db.session.commit()
-
     return jsonify({"message": "Movie updated successfully"}), 200
 
 
-
-#This endpoint will delete a movie based on the title, director and genre passed in the request.
-#It uses SQL Alchemy ORM to perform a delete query on the data base
+# Endpoint to delete a movie by ID
 @app.route("/delete_movie/<int:id>", methods=["DELETE"])
 def delete_movie(id):
     movie = Movie.query.get(id)
@@ -218,15 +208,15 @@ def delete_movie(id):
     if not movie:
         return jsonify({"message": "Movie not found"}), 404
     
+    # Remove the movie from the database
     db.session.delete(movie)
     db.session.commit()
-    
     return jsonify({"message": "Movie deleted"}), 200
 
 
 if __name__ == '__main__':
+    # Initialize the database and start the server
     with app.app_context():
         db.create_all()
 
     app.run(debug=True)
-
