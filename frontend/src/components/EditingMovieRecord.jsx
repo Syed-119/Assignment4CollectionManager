@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import MovieList from "./MovieList";
 
-const AddingMovieRecord = ({ action, existingMovie = {}, updateCallBack, params, setParams }) => {
-    // State variables to hold form data
+const EditingMovieRecord = ({ action, existingMovie = {}, updateCallBack, params, setParams }) => {
+    // State variables to hold form data for movie fields
     const [title, setTitle] = useState(existingMovie.title || "");
     const [director, setDirector] = useState(existingMovie.director || "");
     const [genre, setGenre] = useState(existingMovie.genre || "");
@@ -15,21 +15,18 @@ const AddingMovieRecord = ({ action, existingMovie = {}, updateCallBack, params,
     const [movieType, setMovieType] = useState(existingMovie.movieType || "movie");  // Default type is "movie"
     const [topic, setTopic] = useState(existingMovie.topic || "");  // Specific to documentaries
     const [documentarian, setDocumentarian] = useState(existingMovie.documentarian || "");  // Specific to documentaries
-    const [moralLesson, setMoralLesson] = useState(existingMovie.moralLesson || "");
-    const [parentalAppeal, setParentalAppeal] = useState(existingMovie.parentalAppeal || "");
+    const [moralLesson, setMoralLesson] = useState(existingMovie.moralLesson || ""); // Specific to kids' movies
+    const [parentalAppeal, setParentalAppeal] = useState(existingMovie.parentalAppeal || ""); // Specific to kids' movies
 
+    // Determine if the form is for updating an existing movie
+    const updating = Object.entries(existingMovie).length !== 0;
 
-
-    const updating = Object.entries(existingMovie).length !== 0
-
-    // Handle form submission
+    // Handle form submission based on the action (add or search)
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        // Prepare the request to backend depending on if its a search or adding action
+        // Adding or updating a movie
         if (action === "add") {
-
-
             const movieRecord = {
                 title,
                 director,
@@ -41,13 +38,13 @@ const AddingMovieRecord = ({ action, existingMovie = {}, updateCallBack, params,
                 watched,
                 ageRating,
                 type: movieType,
-                topic,  // Only used for documentaries
-                documentarian,  // Only used for documentaries
+                topic, // Only used for documentaries
+                documentarian, // Only used for documentaries
                 moralLesson, // Only used for kids movies
-                parentalAppeal // Only used for kids movies
+                parentalAppeal, // Only used for kids movies
             };
 
-            // Send the movie record to the backend
+            // Send the movie record to the backend (add or update)
             const url = "http://127.0.0.1:5000/" + (updating ? `update_movie/${existingMovie.movieId}` : "add_movies");
             const options = {
                 method: updating ? "PATCH" : "POST",
@@ -66,15 +63,17 @@ const AddingMovieRecord = ({ action, existingMovie = {}, updateCallBack, params,
             if (response.status !== 201 && response.status !== 200) {
                 const data = await response.json();
                 console.log("movies:", data);
-                alert(data.message);  // Show any error message from the server
+                alert(data.message); // Show any error message from the server
             } else {
-                alert("Movied added/updated successfully")
-                updateCallBack()
-
+                alert("Movie added/updated successfully");
+                updateCallBack(); // Refresh the movie list after adding/updating
             }
-        } else if (action === "search") {
+        }
+        // Searching for movies based on the input criteria
+        else if (action === "search") {
             const parameters = new URLSearchParams();
 
+            // Add search parameters only if they have values
             if (title) parameters.append("title", title);
             if (director) parameters.append("director", director);
             if (genre) parameters.append("genre", genre);
@@ -85,11 +84,11 @@ const AddingMovieRecord = ({ action, existingMovie = {}, updateCallBack, params,
             if (movieType) parameters.append("type", movieType);
             if (topic) parameters.append("topic", topic);
             if (documentarian) parameters.append("documentarian", documentarian);
-            if (isAnimated) parameters.append("is_animated", isAnimated)
-            if (moralLesson) parameters.append("moral_lesson", moralLesson)
-            if (parentalAppeal) parameters.append("parental_appeal", parentalAppeal)
+            if (isAnimated) parameters.append("is_animated", isAnimated);
+            if (moralLesson) parameters.append("moral_lesson", moralLesson);
+            if (parentalAppeal) parameters.append("parental_appeal", parentalAppeal);
 
-            setParams(parameters)
+            setParams(parameters); // Update the search query parameters
         }
     };
 
@@ -98,23 +97,27 @@ const AddingMovieRecord = ({ action, existingMovie = {}, updateCallBack, params,
         <div>
             <form onSubmit={handleSubmit}>
                 {/* Movie Type Selection */}
-                <div>
-                    <label htmlFor="movieType">Movie Type:</label>
-                    <select
-                        className="form-element"
-                        id="movieType"
-                        value={movieType}
-                        onChange={(e) => setMovieType(e.target.value)}
-                    >
-                        {action === "search" && (
-                            <option value="all">All</option>
-                        )}
-                        <option value="movie">Regular Movie</option>
-                        <option value="documentary">Documentary</option>
-                        <option value="kidMovie">Kids Movie</option>
+                {!updating && (
+                    <>
+                        <div>
+                            <label htmlFor="movieType">Movie Type:</label>
+                            <select
+                                className="form-element"
+                                id="movieType"
+                                value={movieType}
+                                onChange={(e) => setMovieType(e.target.value)}
+                            >
+                                {action === "search" && (
+                                    <option value="all">All</option>
+                                )}
+                                <option value="movie">Regular Movie</option>
+                                <option value="documentary">Documentary</option>
+                                <option value="kidMovie">Kids Movie</option>
 
-                    </select>
-                </div>
+                            </select>
+                        </div>
+                    </>
+                )}
 
 
 
@@ -278,7 +281,7 @@ const AddingMovieRecord = ({ action, existingMovie = {}, updateCallBack, params,
                         </div>
                     </>
                 )}
-
+                {/* Display different button text based on the context */}
                 <button className="btn-primary" type="submit">{updating ? "Update" : action === "add" ? "Add Movie" : "Search Movie"}</button>
 
 
@@ -287,4 +290,4 @@ const AddingMovieRecord = ({ action, existingMovie = {}, updateCallBack, params,
     );
 };
 
-export default AddingMovieRecord;
+export default EditingMovieRecord;
