@@ -136,7 +136,7 @@ const EditingMovieRecord = ({ action, existingMovie = {}, updateCallBack, params
                 {/* Genre - Accepts a comma-separated list of genres */}
                 <div>
                     <label htmlFor="genre">Genre:</label>
-                    <input className="form-element" type="text" id="genre" value={genre} onChange={(e) => setGenre(e.target.value)} required={action === "add"} />
+                    <input className="form-element w-80" placeholder="Genres can be seperated by commas" type="text" id="genre" value={genre} onChange={(e) => setGenre(e.target.value)} required={action === "add"} />
                 </div>
 
                 {/* Release Year */}
