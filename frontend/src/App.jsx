@@ -102,7 +102,10 @@ function App() {
           </button>
           <button
             className={`btn-primary ${activeTab === "Graph" ? "bg-green-700" : "bg-blue-900"}`}
-            onClick={() => setActiveTab("Graph")}
+            onClick={() => {
+              setActiveTab("Graph");
+              fetchAllMovies();
+            }}
           >
             By Year Chart
           </button>
