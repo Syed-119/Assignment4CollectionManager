@@ -14,8 +14,11 @@ import {
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 const MovieYearChart = ({ allMovies }) => {
+    // Filter out movies with null or undefined releaseYear
+    const validMovies = allMovies.filter((movie) => movie.releaseYear !== null && movie.releaseYear !== undefined);
+
     // Count movies by their release year
-    const yearCounts = allMovies.reduce((acc, movie) => {
+    const yearCounts = validMovies.reduce((acc, movie) => {
         acc[movie.releaseYear] = (acc[movie.releaseYear] || 0) + 1;
         return acc;
     }, {});

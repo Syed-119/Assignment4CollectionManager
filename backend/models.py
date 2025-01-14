@@ -32,7 +32,7 @@ class Movie(Base):
     is_animated = db.Column(db.Boolean, default=False)
     watched = db.Column(db.Boolean, default=False)
     age_rating = db.Column(db.Integer, nullable=False)
-    type = db.Column(db.String(50))  # Discriminator column to distinguish subclasses.
+    type = db.Column(db.String(50), nullable=False)  # Discriminator column to distinguish subclasses.
 
     __mapper_args__ = {
         'polymorphic_identity': 'movie',  # Identifier for the Movie class.
@@ -123,4 +123,14 @@ class KidMovies(Movie):
     def to_json(self):
         """Extends the base JSON representation with fields specific to kids' movies."""
         movie_json = super().to_json()
-       
+        movie_json.update({
+            "kidMovieId": self.kid_movie_id,
+            "moralLesson": self.moral_lesson,
+            "parentalAppeal": self.parental_appeal,
+            "type": self.type
+        })
+        return movie_json
+
+    def __repr__(self):
+        """Provides a human-readable string representation of the kids' movie."""
+        return f"<KidMovie {self.title} ({self.release_year}) - Moral: {self.moral_lesson}>"

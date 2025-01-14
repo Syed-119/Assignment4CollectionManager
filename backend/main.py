@@ -41,10 +41,15 @@ def search_movies():
             query = query.filter(Movie.age_rating == int(age_rating))
         except ValueError:
             return jsonify({"message": "Invalid age rating format"}), 400
-    if favourite is not None:
-        query = query.filter(Movie.favourite == (favourite.lower() == "true"))
-    if watched is not None:
+    if watched is not None and watched != "":
         query = query.filter(Movie.watched == (watched.lower() == "true"))
+
+    if favourite is not None and favourite != "":
+        query = query.filter(Movie.favourite == (favourite.lower() == "true"))
+
+    if is_animated is not None and is_animated != "":
+        query = query.filter(Movie.is_animated == (is_animated.lower() == "true"))
+
     if release_year:
         try:
             query = query.filter(Movie.release_year <= int(release_year))
@@ -57,8 +62,6 @@ def search_movies():
             return jsonify({"message": "Invalid duration format"}), 400
     if movie_type and movie_type.lower() != "all":
         query = query.filter(Movie.type.ilike(f"{movie_type}"))
-    if is_animated is not None:
-        query = query.filter(Movie.is_animated == (is_animated.lower() == "true"))
     if parental_appeal:
         try:
             query = query.filter(Movie.parental_appeal <= int(parental_appeal))
@@ -67,7 +70,7 @@ def search_movies():
     
     # Execute the query and return results
     movies = query.all()
-    json_movies = [movie.to_json() for movie in movies]
+    json_movies = [movie.to_json() for movie in movies if movie is not None]
     return jsonify({"movies": json_movies})
 
 
@@ -126,7 +129,7 @@ def add_movie():
             moral_lesson=moral_lesson,
             parental_appeal=parental_appeal
         )
-    elif movie_type == "movie":
+    else:
         new_movie = Movie(
             title=title,
             director=director,
@@ -137,15 +140,13 @@ def add_movie():
             watched=watched,
             age_rating=age_rating
         )
-    else:
-        return jsonify({"message": "Invalid movie type"}), 400
-
     # Set genres and save the movie to the database
     try:
         new_movie.set_genres(genre)
         db.session.add(new_movie)
         db.session.commit()
     except Exception as e:
+        db.session.rollback()
         return jsonify({"message": str(e)}), 400
 
     return jsonify({"message": "Movie/Documentary Added"}), 201

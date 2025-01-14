@@ -12,7 +12,7 @@ const EditingMovieRecord = ({ action, existingMovie = {}, updateCallBack, params
     const [favourite, setFavourite] = useState(existingMovie.favourite || false);
     const [isAnimated, setIsAnimated] = useState(existingMovie.isAnimated || false);
     const [ageRating, setAgeRating] = useState(existingMovie.ageRating || "");
-    const [movieType, setMovieType] = useState(existingMovie.movieType || "movie");  // Default type is "movie"
+    const [movieType, setMovieType] = useState(existingMovie.type || "movie");  // Default type is "movie"
     const [topic, setTopic] = useState(existingMovie.topic || "");  // Specific to documentaries
     const [documentarian, setDocumentarian] = useState(existingMovie.documentarian || "");  // Specific to documentaries
     const [moralLesson, setMoralLesson] = useState(existingMovie.moralLesson || ""); // Specific to kids' movies
@@ -33,9 +33,9 @@ const EditingMovieRecord = ({ action, existingMovie = {}, updateCallBack, params
                 genre: (typeof genre === "string" ? genre : String(genre || "")).split(",").map((g) => g.trim()), // Split and clean up the genres
                 releaseYear: parseInt(releaseYear, 10),
                 duration: parseInt(duration, 10),
-                favourite,
-                isAnimated,
-                watched,
+                favourite: favourite === "true" || favourite === true,
+                isAnimated: isAnimated === "true" || isAnimated === true,
+                watched: watched === "true" || watched === true,
                 ageRating,
                 type: movieType,
                 topic, // Only used for documentaries
@@ -96,27 +96,27 @@ const EditingMovieRecord = ({ action, existingMovie = {}, updateCallBack, params
     return (
         <div>
             <form onSubmit={handleSubmit}>
-                {/* Movie Type Selection */}
-                {!updating && (
-                    <>
-                        <div>
-                            <label htmlFor="movieType">Movie Type:</label>
-                            <select
-                                className="form-element"
-                                id="movieType"
-                                value={movieType}
-                                onChange={(e) => setMovieType(e.target.value)}
-                            >
-                                {action === "search" && (
-                                    <option value="all">All</option>
-                                )}
-                                <option value="movie">Regular Movie</option>
-                                <option value="documentary">Documentary</option>
-                                <option value="kidMovie">Kids Movie</option>
-
-                            </select>
-                        </div>
-                    </>
+                {/* Movie Type Selection (Only editable when adding new movie) */}
+                {!updating ? (
+                    <div>
+                        <label htmlFor="movieType">Movie Type:</label>
+                        <select
+                            className="form-element"
+                            id="movieType"
+                            value={movieType}
+                            onChange={(e) => setMovieType(e.target.value)}
+                        >
+                            {action === "search" && <option value="all">All</option>}
+                            <option value="movie">Regular Movie</option>
+                            <option value="documentary">Documentary</option>
+                            <option value="kidMovie">Kids Movie</option>
+                        </select>
+                    </div>
+                ) : (
+                    <div>
+                        <label htmlFor="movieType">Movie Type:</label>
+                        <span className="form-element">{movieType}</span>
+                    </div>
                 )}
 
 
@@ -168,40 +168,58 @@ const EditingMovieRecord = ({ action, existingMovie = {}, updateCallBack, params
                 {/* Watched checkbox */}
                 <div>
                     <label htmlFor="watched">Watched:</label>
-                    <input
-                        className="form-element"
-                        type="checkbox"
-                        id="watched"
-                        checked={watched}
-                        onChange={() => setWatched(!watched)}  // Toggle the watched state
-
-                    />
+                    {action === "search" ? (
+                        // Render a select dropdown if the action is "search"
+                        <select
+                            className="form-element" id="watched" value={watched} onChange={(e) => setWatched(e.target.value)}
+                        >
+                            <option value="">Any</option>
+                            <option value="true">Yes</option>
+                            <option value="false">No</option>
+                        </select>
+                    ) : (
+                        // Render a checkbox if the action is not "search"
+                        <input className="form-element" type="checkbox" id="watched" checked={watched} onChange={() => setWatched(!watched)} // Toggle the isAnimated state
+                        />
+                    )}
                 </div>
 
                 {/* Favourite checkbox */}
                 <div>
                     <label htmlFor="favourite">Favourite:</label>
-                    <input
-                        className="form-element"
-                        type="checkbox"
-                        id="favourite"
-                        checked={favourite}
-                        onChange={() => setFavourite(!favourite)}  // Toggle the favourite state
-
-                    />
+                    {action === "search" ? (
+                        // Render a select dropdown if the action is "search"
+                        <select
+                            className="form-element" id="favourite" value={favourite} onChange={(e) => setFavourite(e.target.value)}
+                        >
+                            <option value="">Any</option>
+                            <option value="true">Yes</option>
+                            <option value="false">No</option>
+                        </select>
+                    ) : (
+                        // Render a checkbox if the action is not "search"
+                        <input className="form-element" type="checkbox" id="favourite" checked={favourite} onChange={() => setFavourite(!favourite)}
+                        />
+                    )}
                 </div>
 
                 {/* Is Animated checkbox */}
                 <div>
                     <label htmlFor="isAnimated">Is Animated:</label>
-                    <input
-                        className="form-element"
-                        type="checkbox"
-                        id="isAnimated"
-                        checked={isAnimated}
-                        onChange={() => setIsAnimated(!isAnimated)}  // Toggle the isAnimated state
-
-                    />
+                    {action === "search" ? (
+                        // Render a select dropdown if the action is "search"
+                        <select
+                            className="form-element" id="isAnimated" value={isAnimated} onChange={(e) => setIsAnimated(e.target.value)}
+                        >
+                            <option value="">Any</option>
+                            <option value="true">Yes</option>
+                            <option value="false">No</option>
+                        </select>
+                    ) : (
+                        // Render a checkbox if the action is not "search"
+                        <input className="form-element" type="checkbox" id="isAnimated" checked={isAnimated} onChange={() => setIsAnimated(!isAnimated)} // Toggle the isAnimated state
+                        />
+                    )}
                 </div>
 
                 {/* Age Rating */}
