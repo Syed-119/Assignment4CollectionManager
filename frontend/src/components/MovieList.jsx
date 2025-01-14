@@ -83,28 +83,33 @@ const MovieList = ({ movies, updateMovie, updateCallback }) => {
                 )}
             </div>
 
-            {/* Pagination Controls */}
-            <div className="flex justify-center mt-6 space-x-4">
-                <button
-                    className="btn-primary"
-                    onClick={() => setPageSafely(currentPage - 1)} // Go to the previous page
-                    disabled={currentPage === 1}
-                >
-                    Previous
-                </button>
-                <span className="text-lg">{`Page ${currentPage} of ${totalPages}`}</span> {/* Display current page out of total pages */}
-                <button
-                    className="btn-primary"
-                    onClick={() => setPageSafely(currentPage + 1)} // Go to the next page
-                    disabled={currentPage === totalPages} // Disable if already on the last page
-                >
-                    Next
-                </button>
+            {/* Pagination Controls and Total Movies */}
+            <div className="relative mt-6 px-8">
+                {/* Pagination Controls */}
+                <div className="flex justify-center items-center space-x-4">
+                    <button
+                        className="btn-primary"
+                        onClick={() => setPageSafely(currentPage - 1)} // Go to the previous page
+                        disabled={currentPage === 1}
+                    >
+                        Previous
+                    </button>
+                    <span className="text-lg">{`Page ${currentPage} of ${totalPages}`}</span> {/* Display current page out of total pages */}
+                    <button
+                        className="btn-primary"
+                        onClick={() => setPageSafely(currentPage + 1)} // Go to the next page
+                        disabled={currentPage === totalPages} // Disable if already on the last page
+                    >
+                        Next
+                    </button>
+                </div>
+
+                {/* Total number of movies */}
+                <div className="absolute right-8 top-1/2 transform -translate-y-1/2 text-white font-bold text-xl">
+                    Total Movies: {validMovies.length}
+                </div>
             </div>
-            {/* Total number of movies */}
-            <div className="absolute right-4 text-white font-bold">
-                Total Movies: {validMovies.length}
-            </div>
+
         </div>
     );
 };

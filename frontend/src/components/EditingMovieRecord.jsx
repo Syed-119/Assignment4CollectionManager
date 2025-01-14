@@ -8,9 +8,9 @@ const EditingMovieRecord = ({ action, existingMovie = {}, updateCallBack, params
     const [genre, setGenre] = useState(existingMovie.genre || "");
     const [releaseYear, setReleaseYear] = useState(existingMovie.releaseYear || "");
     const [duration, setDuration] = useState(existingMovie.duration || "");
-    const [watched, setWatched] = useState(existingMovie.watched || false);
-    const [favourite, setFavourite] = useState(existingMovie.favourite || false);
-    const [isAnimated, setIsAnimated] = useState(existingMovie.isAnimated || false);
+    const [watched, setWatched] = useState(existingMovie.watched || "");
+    const [favourite, setFavourite] = useState(existingMovie.favourite || "");
+    const [isAnimated, setIsAnimated] = useState(existingMovie.isAnimated || "");
     const [ageRating, setAgeRating] = useState(existingMovie.ageRating || "");
     const [movieType, setMovieType] = useState(existingMovie.type || "movie");  // Default type is "movie"
     const [topic, setTopic] = useState(existingMovie.topic || "");  // Specific to documentaries
@@ -78,6 +78,7 @@ const EditingMovieRecord = ({ action, existingMovie = {}, updateCallBack, params
             if (director) parameters.append("director", director);
             if (genre) parameters.append("genre", genre);
             if (ageRating) parameters.append("age_rating", ageRating);
+            if (duration) parameters.append("duration", duration);
             if (favourite) parameters.append("favourite", favourite);
             if (watched) parameters.append("watched", watched);
             if (releaseYear) parameters.append("release_year", releaseYear);
@@ -90,6 +91,22 @@ const EditingMovieRecord = ({ action, existingMovie = {}, updateCallBack, params
 
             setParams(parameters); // Update the search query parameters
         }
+    };
+    const clearFields = () => {
+        setTitle("");
+        setDirector("");
+        setGenre("");
+        setReleaseYear("");
+        setDuration("");
+        setWatched(""); // Reset to "All"
+        setFavourite(""); 
+        setIsAnimated(""); 
+        setAgeRating("");
+        setMovieType("movie"); // Reset to default type
+        setTopic(""); // Clear documentary-specific field
+        setDocumentarian(""); 
+        setMoralLesson(""); // Clear kids' movie-specific field
+        setParentalAppeal(""); 
     };
 
 
@@ -179,7 +196,7 @@ const EditingMovieRecord = ({ action, existingMovie = {}, updateCallBack, params
                         </select>
                     ) : (
                         // Render a checkbox if the action is not "search"
-                        <input className="form-element" type="checkbox" id="watched" checked={watched} onChange={() => setWatched(!watched)} // Toggle the isAnimated state
+                        <input className="form-element w-6 h-5" type="checkbox" id="watched" checked={watched} onChange={() => setWatched(!watched)} // Toggle the isAnimated state
                         />
                     )}
                 </div>
@@ -198,7 +215,7 @@ const EditingMovieRecord = ({ action, existingMovie = {}, updateCallBack, params
                         </select>
                     ) : (
                         // Render a checkbox if the action is not "search"
-                        <input className="form-element" type="checkbox" id="favourite" checked={favourite} onChange={() => setFavourite(!favourite)}
+                        <input className="form-element w-6 h-5" type="checkbox" id="favourite" checked={favourite} onChange={() => setFavourite(!favourite)}
                         />
                     )}
                 </div>
@@ -217,7 +234,7 @@ const EditingMovieRecord = ({ action, existingMovie = {}, updateCallBack, params
                         </select>
                     ) : (
                         // Render a checkbox if the action is not "search"
-                        <input className="form-element" type="checkbox" id="isAnimated" checked={isAnimated} onChange={() => setIsAnimated(!isAnimated)} // Toggle the isAnimated state
+                        <input className="form-element w-6 h-5" type="checkbox" id="isAnimated" checked={isAnimated} onChange={() => setIsAnimated(!isAnimated)} // Toggle the isAnimated state
                         />
                     )}
                 </div>
@@ -279,9 +296,7 @@ const EditingMovieRecord = ({ action, existingMovie = {}, updateCallBack, params
                         </div>
                         <div>
                             <label htmlFor="parentalAppeal">Parental Appeal:</label>
-                            <input
-                                className="form-element"
-                                type="number"
+                            <input className="form-element" type="number"
                                 id="parentalAppeal"
                                 value={parentalAppeal}
                                 min="1"
@@ -300,8 +315,10 @@ const EditingMovieRecord = ({ action, existingMovie = {}, updateCallBack, params
                     </>
                 )}
                 {/* Display different button text based on the context */}
+                <div className="flex flex-row space-x-6">
                 <button className="btn-primary" type="submit">{updating ? "Update" : action === "add" ? "Add Movie" : "Search Movie"}</button>
-
+                <button className="btn-primary" onClick={clearFields} type="button">Clear Fields</button>
+                </div>
 
             </form>
         </div>
