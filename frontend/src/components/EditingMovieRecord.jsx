@@ -99,20 +99,20 @@ const EditingMovieRecord = ({ action, existingMovie = {}, updateCallBack, params
         setReleaseYear("");
         setDuration("");
         setWatched(""); // Reset to "All"
-        setFavourite(""); 
-        setIsAnimated(""); 
+        setFavourite("");
+        setIsAnimated("");
         setAgeRating("");
         setMovieType("movie"); // Reset to default type
         setTopic(""); // Clear documentary-specific field
-        setDocumentarian(""); 
+        setDocumentarian("");
         setMoralLesson(""); // Clear kids' movie-specific field
-        setParentalAppeal(""); 
+        setParentalAppeal("");
     };
 
 
     return (
-        <div>
-            <form onSubmit={handleSubmit}>
+        <div className="text-l">
+            <form className="space-y-1" onSubmit={handleSubmit}>
                 {/* Movie Type Selection (Only editable when adding new movie) */}
                 {!updating ? (
                     <div>
@@ -316,8 +316,8 @@ const EditingMovieRecord = ({ action, existingMovie = {}, updateCallBack, params
                 )}
                 {/* Display different button text based on the context */}
                 <div className="flex flex-row space-x-6">
-                <button className="btn-primary" type="submit">{updating ? "Update" : action === "add" ? "Add Movie" : "Search Movie"}</button>
-                <button className="btn-primary" onClick={clearFields} type="button">Clear Fields</button>
+                    <button className="btn-primary" type="submit">{updating ? "Update" : action === "add" ? "Add Movie" : "Search Movie"}</button>
+                    <button className="btn-primary" onClick={clearFields} type="button">Clear Fields</button>
                 </div>
 
             </form>
